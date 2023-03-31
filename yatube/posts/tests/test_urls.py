@@ -1,7 +1,9 @@
 from http import HTTPStatus
+
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
+
 from posts.models import Group, Post
 
 User = get_user_model()
@@ -41,6 +43,12 @@ class PostURLTests(TestCase):
             reverse('posts:post_create'): 'posts/create_post.html',
             reverse('posts:post_edit', kwargs={'post_id': self.post.id}):
             'posts/create_post.html',
+            reverse('posts:follow_index'): 'posts/follow.html',
+            reverse('posts:profile_follow', kwargs={'username': self.user}):
+            'posts/follow.html',
+            reverse('posts:profile_unfollow', kwargs={'username': self.user}):
+            'posts/follow.html',
+            '/unexisting_page/': 'core/404.html',
         }
         for reverse_name, template in templates_pages_names.items():
             with self.subTest(reverse_name=reverse_name):
@@ -54,7 +62,7 @@ class PostURLTests(TestCase):
             f'/group/{self.group.slug}/': HTTPStatus.OK,
             f'/profile/{self.user}/': HTTPStatus.OK,
             f'/posts/{self.post.id}/': HTTPStatus.OK,
-            '/unexisting_page/': HTTPStatus.NOT_FOUND
+            '/unexisting_page/': HTTPStatus.NOT_FOUND,
         }
         for address, status in pages_status_guest.items():
             with self.subTest(address=address):
@@ -68,9 +76,12 @@ class PostURLTests(TestCase):
             f'/group/{self.group.slug}/': HTTPStatus.OK,
             f'/profile/{self.user}/': HTTPStatus.OK,
             f'/posts/{self.post.id}/': HTTPStatus.OK,
-            # f'/posts/{self.post.id}/comment/': HTTPStatus.OK,
+            f'/posts/{self.post.id}/comment/': HTTPStatus.FOUND,
             '/create/': HTTPStatus.OK,
             f'/posts/{self.post.id}/edit/': HTTPStatus.OK,
+            '/follow/': HTTPStatus.OK,
+            f'/profile/{self.user}/follow/': HTTPStatus.OK,
+            f'/profile/{self.user}/unfollow/': HTTPStatus.OK,
             '/unexisting_page/': HTTPStatus.NOT_FOUND,
         }
         for address, status in pages_status_authorized.items():
@@ -78,13 +89,13 @@ class PostURLTests(TestCase):
                 response = self.authorized_client.get(address)
                 self.assertEqual(response.status_code, status)
 
-    def test_post_edit(self):
-        """Страница posts_edit перенаправит анонимного пользователя
-        на страницу логина.
-        """
-        response = self.guest_client.get(
-            f'/posts/{self.post.id}/edit/', follow=True
-        )
-        self.assertRedirects(
-            response, f'/auth/login/?next=/posts/{self.post.id}/edit/'
-        )
+    def test_url_redirect_anonymous(self):
+        """Страница перенаправит анонимного пользователяна страницу логина."""
+        templates_names = [
+            f'/posts/{self.post.id}/comment/',
+            '/create/',
+            f'/posts/{self.post.id}/edit/',
+        ]
+        for names in templates_names:
+            response = self.guest_client.get(names, follow=True)
+            self.assertRedirects(response, f'/auth/login/?next={names}')

@@ -1,17 +1,19 @@
 import shutil
 import tempfile
-
 from http import HTTPStatus
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, override_settings, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+
 from posts.forms import PostForm
-from posts.models import Group, Post
+from posts.models import Comment, Group, Post
 
 User = get_user_model()
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
+
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostModelTest(TestCase):
@@ -66,19 +68,20 @@ class PostModelTest(TestCase):
             data=form_data,
             follow=True
         )
-        self.assertRedirects(response, reverse(
-            'posts:profile', kwargs={'username': self.user}))
+        self.assertRedirects(
+            response, reverse('posts:profile', kwargs={'username': self.user})
+        )
         self.assertEqual(Post.objects.count(), posts_count + 1)
         self.assertTrue(
             Post.objects.filter(
                 text='Тестовый текст',
                 group=PostModelTest.group.id,
                 image='posts/small.gif'
-                ).exists()
+            ).exists()
         )
 
-    def test_cant_create_existing_slug(self):
-        """При отправки валидная формы проверяем изменение поста."""
+    def test_add_create_existing_post(self):
+        """При отправки валидной формы проверяем изменение поста."""
         posts_count = Post.objects.count()
         form_data = {
             'text': 'Тестовый текст',
@@ -95,3 +98,25 @@ class PostModelTest(TestCase):
         self.assertEqual(edited_post.group.id, form_data['group'])
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
+    def test_page_comment_location_authorized(self):
+        """При отправки комментария проверяем добавление на страницу."""
+        comment_count = Comment.objects.count()
+        comment_data = {
+            'text': 'Тестовый комментарий для проверки',
+        }
+        response = self.authorized_client.post(
+            reverse('posts:add_comment', kwargs={'post_id': self.post.id}),
+            data=comment_data,
+            follow=True
+        )
+        self.assertRedirects(
+            response, reverse(
+                'posts:post_detail', kwargs={'post_id': self.post.id}
+            )
+        )
+        self.assertEqual(Comment.objects.count(), comment_count + 1)
+        self.assertTrue(
+            Comment.objects.filter(
+                text='Тестовый комментарий для проверки',
+            ).exists()
+        )

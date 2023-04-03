@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load thumbnail %}
 {% block title %}
 Последние обновления на сайте
 {% endblock %}
@@ -9,6 +8,7 @@
 {% include 'posts/includes/switcher.html' with index=True %}
 {% load cache %}
 {% cache 20 index_page page_obj.number %}
+{% load thumbnail %}
 {% for post in page_obj %}
   <article>
     <ul>

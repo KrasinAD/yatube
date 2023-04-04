@@ -27,9 +27,10 @@ class Post(CreatedModel):
         help_text='Группа, к которой будет относиться пост'
     )
     image = models.ImageField(
-        'Картинка',
+        'Изображение',
         upload_to='posts/',
-        blank=True
+        blank=True,
+        help_text='Загрузи изображение для поста'
     )
 
     class Meta:

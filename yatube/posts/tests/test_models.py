@@ -40,6 +40,7 @@ class PostModelTest(TestCase):
             'created': 'Дата публикации',
             'author': 'Автор',
             'group': 'Группа',
+            'image': 'Изображение'
         }
         for field, expected_value in field_verboses.items():
             with self.subTest(field=field):
@@ -52,6 +53,7 @@ class PostModelTest(TestCase):
         field_help_texts = {
             'text': 'Введите текст поста',
             'group': 'Группа, к которой будет относиться пост',
+            'image': 'Загрузи изображение для поста'
         }
         for field, expected_value in field_help_texts.items():
             with self.subTest(field=field):

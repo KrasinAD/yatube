@@ -43,7 +43,7 @@ def profile(request, username):
 def post_detail(request, post_id):
     one_post = get_object_or_404(Post, id=post_id)
     form = CommentForm()
-    comments = Comment.objects.filter(post_id=post_id)
+    comments = one_post.comments.all()
     context = {
         'form': form,
         'comments': comments,

@@ -1,8 +1,3 @@
-# hw05_final
-# backend_community_homework
-
-[![CI](https://github.com/yandex-praktikum/hw05_final/actions/workflows/python-app.yml/badge.svg?branch=master)](https://github.com/yandex-praktikum/hw05_final/actions/workflows/python-app.yml)
-
 # YATUBE
 ### Описание
 Сооциальная сеть для публикации личных дневников.
